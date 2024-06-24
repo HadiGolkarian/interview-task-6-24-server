@@ -1,13 +1,13 @@
-import { BaseEntity, Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity('notes')
-export class NoteEntity extends BaseEntity {
+export class NoteEntity  {
   @PrimaryColumn()
   id: number;
 
   @Column()
-  title: number;
+  title: string;
 
   @Column()
-  note: number;
+  note: string;
 }

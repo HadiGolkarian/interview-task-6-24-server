@@ -1,14 +1,15 @@
 import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    Param,
-    Post,
-    Put,
-    Req,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  NotFoundException,
+  Param,
+  Post,
+  Put,
 } from '@nestjs/common';
 import { CreateNoteDto } from './dto/create-note.dto';
+import { ReadNoteDto } from './dto/read-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { NotesService } from './notes.service';
 
@@ -17,17 +18,39 @@ export class NotesController {
   constructor(private readonly notesService: NotesService) {}
 
   @Get()
-  async getAllNotes(@Req() req: Request) {}
+  async getAllNotes() {
+    const notes = await this.notesService.readAllNotes();
+
+    return notes.map((note) => new ReadNoteDto(note));
+  }
 
   @Get(':id')
-  async getNote(@Req() req: Request, @Param('id') noteId: number) {}
+  async getNote(@Param('id') noteId: number) {
+    const note = await this.notesService.readNoteById(noteId);
+
+    if (!note) {
+      throw new NotFoundException(`Note with Id ${noteId} not found`);
+    }
+
+    return new ReadNoteDto(note);
+  }
 
   @Post()
-  async createNote(@Req() req: Request, @Body() dto: CreateNoteDto) {}
+  async createNote(@Body() dto: CreateNoteDto) {
+    const note = await this.notesService.createNote(dto);
 
-  @Put()
-  async updateNote(@Req() req: Request, @Body() dto: UpdateNoteDto) {}
+    return new ReadNoteDto(note);
+  }
+
+  @Put(':id')
+  async updateNote(@Param('id') noteId: number, @Body() dto: UpdateNoteDto) {
+    const note = await this.notesService.updateNote(noteId, dto);
+
+    return new ReadNoteDto(note);
+  }
 
   @Delete(':id')
-  async deleteNote(@Req() req: Request, @Param('id') noteId: number) {}
+  async deleteNote(@Param('id') noteId: number) {
+    return await this.notesService.deleteNote(noteId);
+  }
 }
