@@ -52,15 +52,13 @@ export class NotesService {
     return updatedNote;
   }
 
-  async deleteNote(id: number): Promise<boolean> {
-    const note = await this.notesRepository.findOneBy({ id });
-
-    if (!note) {
-      throw new NotFoundException(`Note with Id ${id} not found`);
-    }
-
+  async deleteNote(id: number): Promise<number> {
     const { affected } = await this.notesRepository.delete({ id });
 
-    return affected === 1;
+    if (affected === 0) {
+      throw new NotFoundException(`Note with ID ${id} not found`);
+    }
+
+    return affected;
   }
 }
