@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('notes')
-export class NoteEntity  {
+export class NoteEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -10,4 +10,7 @@ export class NoteEntity  {
 
   @Column()
   note: string;
+
+  @Column()
+  createdAt: Date;
 }

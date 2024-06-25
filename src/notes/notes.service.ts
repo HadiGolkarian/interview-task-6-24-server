@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { NoteEntity } from 'src/database/entities/note.entity';
 import { NotesRepository } from 'src/database/repositories/notes.repository';
+import { Like } from 'typeorm';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 
@@ -8,9 +9,47 @@ import { UpdateNoteDto } from './dto/update-note.dto';
 export class NotesService {
   constructor(private readonly notesRepository: NotesRepository) {}
 
-  async readAllNotes(): Promise<NoteEntity[]> {
-    const notes = await this.notesRepository.find();
+  async searchNotes(searchText: string): Promise<NoteEntity[]> {
+    const notes = await this.notesRepository.find({
+      where: [
+        { title: Like(`%${searchText}%`) },
+        { note: Like(`%${searchText}%`) },
+      ],
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+
     return notes;
+  }
+
+  async readAllNotes(): Promise<NoteEntity[]> {
+    const notes = await this.notesRepository.find({
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+    return notes;
+  }
+
+  async readAllNoteStats(): Promise<
+    {
+      createdAt: Date;
+      notes: number;
+    }[]
+  > {
+    const groupedCounts = await this.notesRepository
+      .createQueryBuilder('note')
+      .select('DATE(note.createdAt)', 'date')
+      .addSelect('COUNT(note.id)', 'count')
+      .groupBy('DATE(note.createdAt)')
+      .orderBy('date', 'ASC')
+      .getRawMany();
+
+    return groupedCounts.map((group) => ({
+      createdAt: group.date,
+      notes: Number(group.count),
+    }));
   }
 
   async readNoteById(id: number): Promise<NoteEntity | null> {
@@ -26,6 +65,7 @@ export class NotesService {
       {
         title: dto.title,
         note: dto.note,
+        createdAt: new Date(),
       },
       { reload: true },
     );

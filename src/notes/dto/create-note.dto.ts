@@ -8,6 +8,5 @@ export class CreateNoteDto {
 
   @IsString()
   @MinLength(1)
-  @MaxLength(255)
   note: string;
 }

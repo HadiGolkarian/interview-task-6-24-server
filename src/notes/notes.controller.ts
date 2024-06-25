@@ -7,8 +7,10 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { CreateNoteDto } from './dto/create-note.dto';
+import { ReadNoteStatus } from './dto/read-note-stats.dto';
 import { ReadNoteDto } from './dto/read-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { NotesService } from './notes.service';
@@ -17,9 +19,16 @@ import { NotesService } from './notes.service';
 export class NotesController {
   constructor(private readonly notesService: NotesService) {}
 
-  @Get()
-  async getAllNotes() {
-    const notes = await this.notesService.readAllNotes();
+  @Get('stats')
+  async getNoteStats() {
+    const noteStats = await this.notesService.readAllNoteStats();
+
+    return noteStats.map((stat) => new ReadNoteStatus(stat));
+  }
+
+  @Get('search')
+  async searchNotes(@Query('searchText') searchText: string) {
+    const notes = await this.notesService.searchNotes(searchText);
 
     return notes.map((note) => new ReadNoteDto(note));
   }
@@ -33,6 +42,13 @@ export class NotesController {
     }
 
     return new ReadNoteDto(note);
+  }
+
+  @Get()
+  async getAllNotes() {
+    const notes = await this.notesService.readAllNotes();
+
+    return notes.map((note) => new ReadNoteDto(note));
   }
 
   @Post()
