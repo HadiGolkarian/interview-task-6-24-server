@@ -1,30 +1,28 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppConfigsModule } from 'src/config/app-configs.module';
-import { AppConfigsService } from 'src/config/app-configs.service';
+import { parse } from 'pg-connection-string';
 import { entities } from './entities';
 import { repositories } from './repositories';
 import { TypeOrmExModule } from './typeorm/typeorm-ex.module';
 
+const parsed = parse(process.env.DATABASE_URL);
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
-      imports: [AppConfigsModule],
-      inject: [AppConfigsService],
-      useFactory: async (appConfigService: AppConfigsService) => {
-        return {
-          ssl: true,
-          extra: {
-            ssl: { rejectUnauthorized: false },
-          },
-          type: 'postgres',
-          autoLoadEntities: true,
-          synchronize: true,
-          url: appConfigService.DATABASE_URL,
-        };
-      },
+      useFactory: async () => ({
+        type: 'postgres',
+        host: parsed.host,
+        port: parseInt(parsed.port, 10),
+        username: parsed.user,
+        password: parsed.password,
+        database: parsed.database,
+        entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+        synchronize: true,
+        ssl: {
+          rejectUnauthorized: false,
+        },
+      }),
     }),
-
     TypeOrmModule.forFeature([...entities]),
     TypeOrmExModule.forCustomRepository([...repositories]),
   ],
