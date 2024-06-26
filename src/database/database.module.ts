@@ -5,6 +5,7 @@ import { entities } from './entities';
 import { repositories } from './repositories';
 import { TypeOrmExModule } from './typeorm/typeorm-ex.module';
 
+
 const parsed = parse(process.env.DATABASE_URL);
 @Module({
   imports: [
