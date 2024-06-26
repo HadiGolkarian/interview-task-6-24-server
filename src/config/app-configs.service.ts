@@ -20,4 +20,8 @@ export class AppConfigsService {
       port: Number(process.env.PORT) || 8080,
     };
   }
+
+  get DATABASE_URL(): string {
+    return process.env.DATABASE_URL;
+  }
 }

@@ -10,24 +10,21 @@ import { TypeOrmExModule } from './typeorm/typeorm-ex.module';
   imports: [
     TypeOrmModule.forRootAsync({
       imports: [AppConfigsModule],
-      useFactory: (appConfigService: AppConfigsService) => {
-        const { host, port, database, username, password } =
-          appConfigService.DatabaseConfig;
-
+      inject: [AppConfigsService],
+      useFactory: async (appConfigService: AppConfigsService) => {
         return {
+          ssl: true,
+          extra: {
+            ssl: { rejectUnauthorized: false },
+          },
           type: 'postgres',
-          host: host,
-          port: +port,
-          username: username,
-          password: password,
-          database: database,
-          synchronize: true,
-          logging: false,
           autoLoadEntities: true,
+          synchronize: true,
+          url: appConfigService.DATABASE_URL,
         };
       },
-      inject: [AppConfigsService],
     }),
+
     TypeOrmModule.forFeature([...entities]),
     TypeOrmExModule.forCustomRepository([...repositories]),
   ],
